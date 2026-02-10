@@ -1,0 +1,9 @@
+# --- Core Image Processing & Graphics ---
+opencv-python-headless  # Essential for CI/CD; allows image processing on Linux servers without a monitor
+numpy                   # Handles the matrix math for Fisheye, Anaglyph, and Geometric Mesh
+
+# --- Artificial Intelligence & Computer Vision ---
+mediapipe               # Powers the Face Mesh for AI Glasses and Pose Detection landmarks
+
+# --- DevOps & Quality Assurance ---
+pytest                  # The framework used by the CI pipeline to validate code before merging
