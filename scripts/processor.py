@@ -94,7 +94,8 @@ def process_images(show=False):
         edges = cv2.Canny(gray, 80, 160)
         pts = np.column_stack(np.where(edges > 0))
         if len(pts) > 1000:
-            pts = pts(np.random.choice(len(pts), 1000, replace=False))
+            pts = pts[np.random.choice(len(pts), 1000, replace=False)]
+
         for y, x in pts:
             subdiv.insert((int(x), int(y)))
         for c in [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]:
