@@ -1,16 +1,14 @@
-name: Automated Pull Request
+name: CI and Automated Pull Request
 
 on:
   push:
-    # This triggers the action whenever you push to a branch starting with "feature/"
     branches:
       - 'feature/*'
-  workflow_dispatch: # Allows you to trigger it manually for testing
+  workflow_dispatch:
 
 jobs:
-  create-pr:
+  ci-and-pr:
     runs-on: ubuntu-latest
-    # These permissions allow the Action to create the PR on your behalf
     permissions:
       pull-requests: write
       contents: write
@@ -19,13 +17,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Pytest
+        # The workflow will stop here if tests fail, preventing the PR from being created
+        run: pytest
+
       - name: Create Pull Request
+        if: success() # Only runs if the previous "Run Pytest" step passed
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Automated PR from GitHub Actions"
+          commit-message: "CI Passed: Automated PR from GitHub Actions"
           title: "Merge: ${{ github.ref_name }} into main"
           body: |
-            ## Automated Pull Request
-            This PR was automatically generated because code was pushed to the branch: `${{ github.ref_name }}`.
-          base: main # The branch you want to merge into
+            ## Automated PR (Tests Passed ✅)
+            This PR was automatically generated. 
+            **Build Status:** Success
+            **Branch:** `${{ github.ref_name }}`
+          base: main
