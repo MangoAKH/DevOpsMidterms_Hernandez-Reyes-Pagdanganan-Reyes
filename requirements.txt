@@ -7,3 +7,5 @@ mediapipe               # Powers the Face Mesh for AI Glasses and Pose Detection
 
 # --- DevOps & Quality Assurance ---
 pytest                  # The framework used by the CI pipeline to validate code before merging
+
+Pillow                  #for image sequence
