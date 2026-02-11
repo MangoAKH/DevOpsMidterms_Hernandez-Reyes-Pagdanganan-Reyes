@@ -40,7 +40,7 @@ jobs:
           python processor.py
 
       - name: Upload processed images
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: processed-images
           path: outputs/
