@@ -29,7 +29,7 @@ jobs:
 
       - name: Run Pytest
         # The workflow will stop here if tests fail, preventing the PR from being created
-        run: pytest
+        run: pytest --pythonpath=. tests/
 
       - name: Create Pull Request
         if: success() # Only runs if the previous "Run Pytest" step passed
