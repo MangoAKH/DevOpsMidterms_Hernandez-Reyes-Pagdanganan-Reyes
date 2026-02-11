@@ -1,4 +1,4 @@
-📌 Project Description
+<img width="892" height="272" alt="image" src="https://github.com/user-attachments/assets/996ef6c3-eca3-4cc2-86e2-dcba6c7f7513" />📌 Project Description
 
 This project is a Python-based image processing application developed as part of a midterm exam. The application automatically detects image files placed in an input directory, applies multiple image processing techniques, and saves the processed images into an output directory.
 
@@ -35,10 +35,15 @@ The following image processing features are implemented:
 
 📂 Supported Image File Types
 
-The application only processes the following image formats:
-  • jpg
-  • jpeg
-  • png
+The application only processes the following image and animated formats:
+  • .jpg
+  • .jpeg
+  • .png
+  • .gif
+  • .webp
+  • .bmp
+  • .tiff
+  • .tif
 Any other file types will be ignored automatically.
 
 
