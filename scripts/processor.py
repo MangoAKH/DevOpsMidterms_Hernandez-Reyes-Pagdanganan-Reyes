@@ -71,8 +71,7 @@ def process_static_image(img_path, output_dir):
     outputs.append(fisheye_path)
 
     # 3D Anaglyph
-    anaglyph = apply_anaglyph_full(img)
-    anaglyph = cv2.convertScaleAbs(anaglyph, alpha=1.4, beta=0)
+    anaglyph = cv2.convertScaleAbs(apply_anaglyph_full(img), alpha=1.4, beta=0)
     anaglyph_path = os.path.join(output_dir, f"3d_anaglyph_{filename}")
     cv2.imwrite(anaglyph_path, anaglyph)
     outputs.append(anaglyph_path)
@@ -87,15 +86,15 @@ def process_static_image(img_path, output_dir):
         pts = pts[np.random.choice(len(pts), 1000, replace=False)]
     for y, x in pts:
         subdiv.insert((int(x), int(y)))
-    for c in [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]:
+    for c in [(0,0),(w-1,0),(0,h-1),(w-1,h-1)]:
         subdiv.insert(c)
     triangles = subdiv.getTriangleList()
     for t in triangles:
-        tri = [(int(t[i]), int(t[i + 1])) for i in range(0, 6, 2)]
-        if not all(0 <= x < w and 0 <= y < h for x, y in tri):
+        tri = [(int(t[i]), int(t[i+1])) for i in range(0,6,2)]
+        if not all(0<=x<w and 0<=y<h for x,y in tri):
             continue
-        cx_t = sum(p[0] for p in tri) // 3
-        cy_t = sum(p[1] for p in tri) // 3
+        cx_t = sum(p[0] for p in tri)//3
+        cy_t = sum(p[1] for p in tri)//3
         color = img[cy_t, cx_t].tolist()
         cv2.fillConvexPoly(geometry, np.array(tri, dtype=np.int32), color)
     geometry_path = os.path.join(output_dir, f"geometry_{filename}")
@@ -138,91 +137,56 @@ def process_animated_image(img_path, output_dir):
 
         # Geometry
         geometry = np.zeros_like(cv_img)
-        subdiv = cv2.Subdiv2D((0, 0, w, h))
+        subdiv = cv2.Subdiv2D((0,0,w,h))
         gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(gray, 80, 160)
-        pts = np.column_stack(np.where(edges > 0))
-        if len(pts) > 1000:
-            pts = pts[np.random.choice(len(pts), 1000, replace=False)]
-        for y, x in pts:
-            subdiv.insert((int(x), int(y)))
+        edges = cv2.Canny(gray, 80,160)
+        pts = np.column_stack(np.where(edges>0))
+        if len(pts)>1000:
+            pts = pts[np.random.choice(len(pts),1000,replace=False)]
+        for y,x in pts:
+            subdiv.insert((int(x),int(y)))
         for c in [(0,0),(w-1,0),(0,h-1),(w-1,h-1)]:
             subdiv.insert(c)
         triangles = subdiv.getTriangleList()
         for t in triangles:
-            tri = [(int(t[i]), int(t[i+1])) for i in range(0,6,2)]
+            tri = [(int(t[i]),int(t[i+1])) for i in range(0,6,2)]
             if not all(0<=x<w and 0<=y<h for x,y in tri):
                 continue
             cx_t = sum(p[0] for p in tri)//3
             cy_t = sum(p[1] for p in tri)//3
-            color = cv_img[cy_t, cx_t].tolist()
-            cv2.fillConvexPoly(geometry, np.array(tri, dtype=np.int32), color)
+            color = cv_img[cy_t,cx_t].tolist()
+            cv2.fillConvexPoly(geometry,np.array(tri,dtype=np.int32),color)
 
-        # Save frames per effect
+        # Save frames
         frames_effects["reduced"].append(Image.fromarray(cv2.cvtColor(cv_reduced, cv2.COLOR_BGR2RGB)))
         frames_effects["watermark"].append(Image.fromarray(cv2.cvtColor(cv_watermark, cv2.COLOR_BGR2RGB)))
         frames_effects["fisheye"].append(Image.fromarray(cv2.cvtColor(cv_fisheye, cv2.COLOR_BGR2RGB)))
         frames_effects["anaglyph"].append(Image.fromarray(cv2.cvtColor(cv_anaglyph, cv2.COLOR_BGR2RGB)))
         frames_effects["geometry"].append(Image.fromarray(cv2.cvtColor(geometry, cv2.COLOR_BGR2RGB)))
 
-    # Save all effects as GIFs
-    saved_paths = []
-    for effect, frames in frames_effects.items():
-        save_path = os.path.join(output_dir, f"{effect}_{filename}")
-        frames[0].save(save_path, save_all=True, append_images=frames[1:], loop=0, duration=durations)
+    saved_paths=[]
+    for effect,frames in frames_effects.items():
+        save_path=os.path.join(output_dir,f"{effect}_{filename}")
+        frames[0].save(save_path,save_all=True,append_images=frames[1:],loop=0,duration=durations)
         saved_paths.append(save_path)
-
     return saved_paths
 
 # -------------------- MAIN PROCESS --------------------
-def process_images(show=False):
-    input_dir = "inputs"
-    output_dir = "outputs"
-    os.makedirs(input_dir, exist_ok=True)
-    os.makedirs(output_dir, exist_ok=True)
+def process_images():
+    input_dir="inputs"
+    output_dir="outputs"
+    os.makedirs(input_dir,exist_ok=True)
+    os.makedirs(output_dir,exist_ok=True)
 
-    if len(os.listdir(input_dir)) == 0:
-        dummy = np.zeros((600, 600, 3), dtype=np.uint8)
-        cv2.putText(dummy, "TEST", (150, 320),
-                    cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 255), 6)
-        cv2.imwrite(os.path.join(input_dir, "test.jpg"), dummy)
-
-    all_output_paths = []
-
+    all_output_paths=[]
     for filename in os.listdir(input_dir):
-        path = os.path.join(input_dir, filename)
-        ext = os.path.splitext(filename)[1].lower()
-
+        path=os.path.join(input_dir,filename)
+        ext=os.path.splitext(filename)[1].lower()
         if ext in STATIC_FORMATS:
-            all_output_paths.extend(process_static_image(path, output_dir))
+            all_output_paths.extend(process_static_image(path,output_dir))
         elif ext in ANIMATED_FORMATS:
-            all_output_paths.extend(process_animated_image(path, output_dir))
-        else:
-            continue
+            all_output_paths.extend(process_animated_image(path,output_dir))
+    return all_output_paths
 
-    HEADLESS = os.environ.get("CI") == "true"
-    if show and not HEADLESS:
-        for path in all_output_paths:
-            ext = os.path.splitext(path)[1].lower()
-            if ext in STATIC_FORMATS:
-                img = cv2.imread(path)
-                if img is not None:
-                    name = os.path.basename(path)
-                    cv2.namedWindow(name, cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow(name, 1000, 750)
-                    cv2.imshow(name, img)
-            elif ext in ANIMATED_FORMATS:
-                pil_img = Image.open(path)
-                for frame in ImageSequence.Iterator(pil_img):
-                    img = cv2.cvtColor(np.array(frame.convert("RGB")), cv2.COLOR_RGB2BGR)
-                    name = os.path.basename(path)
-                    cv2.namedWindow(name, cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow(name, 1000, 750)
-                    cv2.imshow(name, img)
-                    cv2.waitKey(int(frame.info.get("duration", 100)))
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-
-if __name__ == "__main__":
-    process_images(show=True)
+if __name__=="__main__":
+    process_images()
