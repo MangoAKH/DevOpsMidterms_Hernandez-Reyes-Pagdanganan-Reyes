@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image, ImageSequence
 
 # Supported formats
-STATIC_FORMATS = (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp")
+STATIC_FORMATS = (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif")
 ANIMATED_FORMATS = (".gif", ".webp")
 ALL_FORMATS = STATIC_FORMATS + ANIMATED_FORMATS
 
