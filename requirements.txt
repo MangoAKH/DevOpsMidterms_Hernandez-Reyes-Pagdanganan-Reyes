@@ -1,16 +1,9 @@
 # --- Core Image Processing & Graphics ---
-opencv-python-headless  # Essential for CI/CD; allows image processing on Linux servers without a monitor
-numpy                   # Handles the matrix math for Fisheye, Anaglyph, and Geometric Mesh
+opencv-python-headless==4.13.0.92  # Headless OpenCV for Linux CI
+numpy==1.25.2                       # Matrix math for Fisheye, Anaglyph, Geometry
 
 # --- Artificial Intelligence & Computer Vision ---
-mediapipe               # Powers the Face Mesh for AI Glasses and Pose Detection landmarks
+mediapipe==0.10.32                  # Face Mesh and Pose Detection
 
 # --- DevOps & Quality Assurance ---
-pytest                  # The framework used by the CI pipeline to validate code before merging
-
-# --- New Information ---
-pip                     # install pytest numpy opencv-python-headless mediapipe
-
-Using                   # opencv-python-headless is correct.
-
-Do                      # not install GUI OpenCV (opencv-python) in headless CI.
+pytest==9.0.2                        # CI test framework
