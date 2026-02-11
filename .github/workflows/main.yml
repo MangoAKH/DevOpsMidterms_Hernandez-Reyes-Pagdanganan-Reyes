@@ -1,17 +1,16 @@
-name: CI and Automated Pull Request
+name: Python CI
 
 on:
   push:
     branches:
-      - 'feature/*'
+      - '**' 
   workflow_dispatch:
 
 jobs:
-  ci-and-pr:
+  test:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
-      contents: write
+      contents: read
       
     steps:
       - name: Checkout code
@@ -28,19 +27,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Pytest
-        # The workflow will stop here if tests fail, preventing the PR from being created
         run: pytest --pythonpath=. tests/
-
-      - name: Create Pull Request
-        if: success() # Only runs if the previous "Run Pytest" step passed
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "CI Passed: Automated PR from GitHub Actions"
-          title: "Merge: ${{ github.ref_name }} into main"
-          body: |
-            ## Automated PR (Tests Passed ✅)
-            This PR was automatically generated. 
-            **Build Status:** Success
-            **Branch:** `${{ github.ref_name }}`
-          base: main
