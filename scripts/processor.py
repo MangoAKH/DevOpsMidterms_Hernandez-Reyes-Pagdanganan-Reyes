@@ -3,7 +3,19 @@ import os
 import numpy as np
 from PIL import Image, ImageSequence
 
-# Supported formats
+# -------------------- PATH SETUP --------------------
+repo_root = os.environ.get("GITHUB_WORKSPACE", os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+input_dir = os.path.join(repo_root, "inputs")
+output_dir = os.path.join(repo_root, "outputs")
+
+os.makedirs(input_dir, exist_ok=True)
+os.makedirs(output_dir, exist_ok=True)
+
+print("INPUT DIR:", input_dir)
+print("OUTPUT DIR:", output_dir)
+print("INPUT FILES:", os.listdir(input_dir))
+
+# -------------------- FORMATS --------------------
 STATIC_FORMATS = (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif")
 ANIMATED_FORMATS = (".gif", ".webp")
 ALL_FORMATS = STATIC_FORMATS + ANIMATED_FORMATS
@@ -26,17 +38,15 @@ def add_stylish_watermark(img, text="GAGRADUATE AKO"):
     text_w, text_h = text_size
     x = (w - text_w) // 2
     y = h - 40
-    # Shadow
     cv2.putText(overlay, text, (x + 4, y + 4), cv2.FONT_HERSHEY_DUPLEX,
                 font_scale, (0, 0, 0), thickness + 4, cv2.LINE_AA)
-    # Main bright text
     cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_DUPLEX,
                 font_scale, (0, 255, 255), thickness, cv2.LINE_AA)
     cv2.addWeighted(overlay, 0.8, wm_img, 0.2, 0, wm_img)
     return wm_img
 
 # -------------------- STATIC IMAGE PROCESSING --------------------
-def process_static_image(img_path, output_dir):
+def process_static_image(img_path):
     filename = os.path.basename(img_path)
     img = cv2.imread(img_path)
     if img is None:
@@ -105,7 +115,7 @@ def process_static_image(img_path, output_dir):
     return outputs
 
 # -------------------- ANIMATED IMAGE PROCESSING --------------------
-def process_animated_image(img_path, output_dir):
+def process_animated_image(img_path):
     filename = os.path.basename(img_path)
     pil_img = Image.open(img_path)
     durations = [frame.info.get("duration", 100) for frame in ImageSequence.Iterator(pil_img)]
@@ -175,54 +185,29 @@ def process_animated_image(img_path, output_dir):
     return saved_paths
 
 # -------------------- MAIN PROCESS --------------------
-def process_images(show=False):
-    input_dir = "inputs"
-    output_dir = "outputs"
-    os.makedirs(input_dir, exist_ok=True)
-    os.makedirs(output_dir, exist_ok=True)
+def process_images():
+    print("Starting processing...")
 
-    if len(os.listdir(input_dir)) == 0:
-        dummy = np.zeros((600, 600, 3), dtype=np.uint8)
-        cv2.putText(dummy, "TEST", (150, 320),
-                    cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 255), 6)
-        cv2.imwrite(os.path.join(input_dir, "test.jpg"), dummy)
+    input_files = os.listdir(input_dir)
+    if len(input_files) == 0:
+        print("No files found in inputs/. Exiting.")
+        return
 
-    all_output_paths = []
+    all_outputs = []
 
-    for filename in os.listdir(input_dir):
-        path = os.path.join(input_dir, filename)
-        ext = os.path.splitext(filename)[1].lower()
-
+    for f in input_files:
+        path = os.path.join(input_dir, f)
+        ext = os.path.splitext(f)[1].lower()
         if ext in STATIC_FORMATS:
-            all_output_paths.extend(process_static_image(path, output_dir))
+            all_outputs.extend(process_static_image(path))
         elif ext in ANIMATED_FORMATS:
-            all_output_paths.extend(process_animated_image(path, output_dir))
+            all_outputs.extend(process_animated_image(path))
         else:
-            continue
+            print(f"Unsupported file format: {f}")
 
-    HEADLESS = os.environ.get("CI") == "true"
-    if show and not HEADLESS:
-        for path in all_output_paths:
-            ext = os.path.splitext(path)[1].lower()
-            if ext in STATIC_FORMATS:
-                img = cv2.imread(path)
-                if img is not None:
-                    name = os.path.basename(path)
-                    cv2.namedWindow(name, cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow(name, 1000, 750)
-                    cv2.imshow(name, img)
-            elif ext in ANIMATED_FORMATS:
-                pil_img = Image.open(path)
-                for frame in ImageSequence.Iterator(pil_img):
-                    img = cv2.cvtColor(np.array(frame.convert("RGB")), cv2.COLOR_RGB2BGR)
-                    name = os.path.basename(path)
-                    cv2.namedWindow(name, cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow(name, 1000, 750)
-                    cv2.imshow(name, img)
-                    cv2.waitKey(int(frame.info.get("duration", 100)))
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
+    print("Processing complete. Generated files:")
+    for p in all_outputs:
+        print(p)
 
 if __name__ == "__main__":
-    process_images(show=True)
+    process_images()
