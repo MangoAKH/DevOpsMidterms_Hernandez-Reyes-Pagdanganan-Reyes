@@ -34,9 +34,19 @@ jobs:
           export PYTHONPATH=$PYTHONPATH:$(pwd)
           pytest tests/test_main.py
 
+      - name: Debug input folder
+        run: |
+          echo "INPUT FOLDER CONTENTS:"
+          ls -l inputs
+
       - name: Run Image Processing
         run: |
           python scripts/processor.py
+
+      - name: Debug outputs folder
+        run: |
+          echo "OUTPUT FOLDER CONTENTS:"
+          ls -l outputs
 
       - name: Upload processed images
         uses: actions/upload-artifact@v4

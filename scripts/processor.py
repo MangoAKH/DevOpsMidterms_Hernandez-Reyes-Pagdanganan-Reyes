@@ -4,15 +4,18 @@ import numpy as np
 from PIL import Image, ImageSequence
 
 # -------------------- PATH SETUP --------------------
-# Ensure paths are absolute relative to the repo root
-repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+repo_root = os.environ.get("GITHUB_WORKSPACE", os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 input_dir = os.path.join(repo_root, "inputs")
 output_dir = os.path.join(repo_root, "outputs")
 
 os.makedirs(input_dir, exist_ok=True)
 os.makedirs(output_dir, exist_ok=True)
 
-# -------------------- SUPPORTED FORMATS --------------------
+print("INPUT DIR:", input_dir)
+print("OUTPUT DIR:", output_dir)
+print("INPUT FILES:", os.listdir(input_dir))
+
+# -------------------- FORMATS --------------------
 STATIC_FORMATS = (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif")
 ANIMATED_FORMATS = (".gif", ".webp")
 ALL_FORMATS = STATIC_FORMATS + ANIMATED_FORMATS
@@ -35,17 +38,15 @@ def add_stylish_watermark(img, text="GAGRADUATE AKO"):
     text_w, text_h = text_size
     x = (w - text_w) // 2
     y = h - 40
-    # Shadow
     cv2.putText(overlay, text, (x + 4, y + 4), cv2.FONT_HERSHEY_DUPLEX,
                 font_scale, (0, 0, 0), thickness + 4, cv2.LINE_AA)
-    # Main bright text
     cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_DUPLEX,
                 font_scale, (0, 255, 255), thickness, cv2.LINE_AA)
     cv2.addWeighted(overlay, 0.8, wm_img, 0.2, 0, wm_img)
     return wm_img
 
 # -------------------- STATIC IMAGE PROCESSING --------------------
-def process_static_image(img_path, output_dir):
+def process_static_image(img_path):
     filename = os.path.basename(img_path)
     img = cv2.imread(img_path)
     if img is None:
@@ -114,7 +115,7 @@ def process_static_image(img_path, output_dir):
     return outputs
 
 # -------------------- ANIMATED IMAGE PROCESSING --------------------
-def process_animated_image(img_path, output_dir):
+def process_animated_image(img_path):
     filename = os.path.basename(img_path)
     pil_img = Image.open(img_path)
     durations = [frame.info.get("duration", 100) for frame in ImageSequence.Iterator(pil_img)]
@@ -184,32 +185,29 @@ def process_animated_image(img_path, output_dir):
     return saved_paths
 
 # -------------------- MAIN PROCESS --------------------
-def process_images(show=False):
-    # Auto-create dummy image if inputs empty
-    if len(os.listdir(input_dir)) == 0:
-        dummy = np.zeros((600, 600, 3), dtype=np.uint8)
-        cv2.putText(dummy, "TEST", (150, 320),
-                    cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 255), 6)
-        cv2.imwrite(os.path.join(input_dir, "test.jpg"), dummy)
+def process_images():
+    print("Starting processing...")
 
-    all_output_paths = []
+    input_files = os.listdir(input_dir)
+    if len(input_files) == 0:
+        print("No files found in inputs/. Exiting.")
+        return
 
-    for filename in os.listdir(input_dir):
-        path = os.path.join(input_dir, filename)
-        ext = os.path.splitext(filename)[1].lower()
+    all_outputs = []
+
+    for f in input_files:
+        path = os.path.join(input_dir, f)
+        ext = os.path.splitext(f)[1].lower()
         if ext in STATIC_FORMATS:
-            all_output_paths.extend(process_static_image(path, output_dir))
+            all_outputs.extend(process_static_image(path))
         elif ext in ANIMATED_FORMATS:
-            all_output_paths.extend(process_animated_image(path, output_dir))
+            all_outputs.extend(process_animated_image(path))
         else:
-            continue
+            print(f"Unsupported file format: {f}")
 
-    # Print output folder for GitHub Actions logs
-    print(f"Processed images saved to: {os.path.abspath(output_dir)}")
-
-    return all_output_paths
-
+    print("Processing complete. Generated files:")
+    for p in all_outputs:
+        print(p)
 
 if __name__ == "__main__":
-    # Run in headless mode for GitHub Actions
-    process_images(show=False)
+    process_images()
