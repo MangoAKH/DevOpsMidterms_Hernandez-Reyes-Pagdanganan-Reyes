@@ -5,7 +5,7 @@ from PIL import Image, ImageSequence
 
 # Supported formats
 STATIC_FORMATS = (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp")
-ANIMATED_FORMATS = (".gif", "webp")
+ANIMATED_FORMATS = (".gif", ".webp")
 ALL_FORMATS = STATIC_FORMATS + ANIMATED_FORMATS
 
 # -------------------- 3D ANAGLYPH EFFECT --------------------
