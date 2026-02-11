@@ -27,7 +27,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements.txt
-          # Ensure headless OpenCV is installed if not in requirements
           pip install opencv-python-headless pillow numpy
 
       - name: Run Pytest
@@ -37,7 +36,7 @@ jobs:
 
       - name: Run Image Processing
         run: |
-          python processor.py
+          python scripts/processor.py
 
       - name: Upload processed images
         uses: actions/upload-artifact@v4
