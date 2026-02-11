@@ -5,51 +5,63 @@ on:
     branches:
       - '**'
     paths:
-      - 'inputs/**'   # Only trigger when files in inputs/ are added/modified
+      - 'inputs/**'   # Trigger only when files in inputs/ are added/modified
   workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write  # Needed to commit back to repo
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true  # Needed to push back
 
+      # 2️⃣ Setup Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
+      # 3️⃣ Install Dependencies
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements.txt
           pip install opencv-python-headless pillow numpy
 
+      # 4️⃣ Run Tests
       - name: Run Pytest
         run: |
           export PYTHONPATH=$PYTHONPATH:$(pwd)
           pytest tests/test_main.py
 
+      # 5️⃣ Debug input folder
       - name: Debug input folder
         run: |
           echo "INPUT FOLDER CONTENTS:"
           ls -l inputs
 
+      # 6️⃣ Run Image Processing
       - name: Run Image Processing
         run: |
           python scripts/processor.py
 
+      # 7️⃣ Debug outputs folder
       - name: Debug outputs folder
         run: |
           echo "OUTPUT FOLDER CONTENTS:"
           ls -l outputs
 
-      - name: Upload processed images
-        uses: actions/upload-artifact@v4
-        with:
-          name: processed-images
-          path: outputs/
+      # 8️⃣ Commit processed images back to repo
+      - name: Commit processed images
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add outputs/*
+          git diff --quiet && echo "No changes to commit" || git commit -m "Add processed images from workflow run"
+          git push origin HEAD:$(git rev-parse --abbrev-ref HEAD)
