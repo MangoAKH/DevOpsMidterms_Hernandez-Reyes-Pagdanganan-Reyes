@@ -2,7 +2,6 @@ import cv2
 import os
 import numpy as np
 
-
 # -------------------- 3D ANAGLYPH EFFECT --------------------
 def apply_anaglyph_full(img, shift=35):
     """Apply strong red-cyan 3D anaglyph effect to entire image."""
@@ -93,7 +92,7 @@ def add_stylish_watermark(img, text="GAGRADUATE AKO"):
 
 
 # -------------------- PROCESS IMAGES --------------------
-def process_images():
+def process_images(show=False):
     input_dir = "inputs"
     output_dir = "outputs"
 
@@ -204,6 +203,9 @@ def process_images():
             "Geometry": geometry,
         }
 
+    # ✅ Skip GUI in headless CI
+    HEADLESS = os.environ.get("CI") == "true"
+    if show and not HEADLESS:
         for name, image in effects.items():
             cv2.namedWindow(name, cv2.WINDOW_NORMAL)
             cv2.resizeWindow(name, 1000, 750)
@@ -214,4 +216,4 @@ def process_images():
 
 
 if __name__ == "__main__":
-    process_images()
+    process_images(show=True)

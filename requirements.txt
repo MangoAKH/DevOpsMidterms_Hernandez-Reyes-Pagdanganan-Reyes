@@ -7,10 +7,3 @@ mediapipe               # Powers the Face Mesh for AI Glasses and Pose Detection
 
 # --- DevOps & Quality Assurance ---
 pytest                  # The framework used by the CI pipeline to validate code before merging
-
-# --- New Information ---
-pip                     # install pytest numpy opencv-python-headless mediapipe
-
-Using                   # opencv-python-headless is correct.
-
-Do                      # not install GUI OpenCV (opencv-python) in headless CI.
